@@ -12,31 +12,33 @@ if (!isset($_SESSION["team"]))
 {
    if (isset($_POST["team_minus"]))
    {
-      print "You joined team minus (blue)...";
+      print "You joined team good...";
       $_SESSION["team"]="minus";
    }
    elseif (isset($_POST["team_plus"]))
    {
-      print "You joined team minus (green)...";
+      print "You joined team evil...";
       $_SESSION["team"]="plus";
    }
    else
    {
-      print "<h1>Choose your team!</h1>";
+      print "<h1>Choose your side!</h1>";
       ?>
       <form action="" method="post">
-      <input type="submit" name="team_minus" value="Team Minus (Blue)">
-      <input type="submit" name="team_plus" value="Team Plus (Green)">
+      <input type="submit" name="team_minus" value="Team Good">
+      <input type="submit" name="team_plus" value="Team Evil">
       </form>
       <?php
    }
 }
 
+// TODO when round start, "the cloud" needs to decide on a random number within the max 
+
 if (isset($_SESSION["team"]))
 {
    ?>
 
-   <h1>Pull!!!</h1>
+   <h1>Guess!!!</h1>
    <p>
    <?php
    if (isset($_GET['cloud_id']))
@@ -55,13 +57,13 @@ if (isset($_SESSION["team"]))
       {
          if ($_SESSION["team"] == "plus")
          {
-            print "You pulled for team plus (green)...";
+            print "You guessed for team evil...";
             $sql = "UPDATE clouds SET value=value+1 WHERE cloud_id = " . $_GET['cloud_id'];
             $result = $pdo->query($sql);
          }
          if ($_SESSION["team"] == "minus")
          {
-            print "You pulled for team minus (blue)...";   
+            print "You guessed for team good...";   
             $sql = "UPDATE clouds SET value=value-1 WHERE cloud_id = " . $_GET['cloud_id'];
             $result = $pdo->query($sql);
          }
@@ -82,15 +84,16 @@ if (isset($_SESSION["team"]))
          <?php
       }
       else
-      {
+      {  
+         //TODO print the number that had to be guessed. And print current score. Button to next round. 
          print "<h2>game over</h2>";
          if (intval($row["value"] == intval($row["max_value"])))
          {
-            print "Team plus (green) won!";
+            print "Team Evil won the round!";
          }
          else
          {
-            print "Team minus (blue) won!";
+            print "Team Good won the round!";
          }
          session_destroy();
       }
