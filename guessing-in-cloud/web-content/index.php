@@ -4,8 +4,8 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <div class="container-fluid">
    <div class="row">
-      <nav class="navbar navbar-light bg-light">
-         <span class="navbar-brand mb-0 h1">Our Game</span>
+      <nav class="navbar navbar-dark bg-dark">
+         <span class="navbar-brand mb-0 h1">Number Guesser</span>
       </nav>
    </div>
    <div class="mt-4">
