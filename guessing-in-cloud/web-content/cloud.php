@@ -43,60 +43,75 @@ if (isset($_SESSION["team"]))
    <?php
    if (isset($_GET['cloud_id']))
    {
-      $sql = "SELECT * FROM clouds WHERE cloud_id = " . $_GET['cloud_id'];
-      foreach ($pdo->query($sql) as $row)
-      {
-         if (abs(intval($row["value"])) >= intval($row["max_value"]))
-         {
+      $cloudId = $_GET['cloud_id'];
+
+      // Query DynamoDB
+      $result = $dynamodb->getItem([
+         'TableName' => 'cloud_tug_of_war',
+         'Key' => [
+               'cloud_id' => ['N' => (string) $cloudId],
+         ],
+      ]);
+
+      $item = $result->get('Item');
+
+      if ($item) {
+         $value = $item['value']['N'];
+         $maxValue = $item['max_value']['N'];
+
+         if (abs(intval($value)) >= intval($maxValue)) {
             unset($_SESSION["team"]);
             $_SESSION["finished"] = true;
-         }
-      }
+        }
 
-      if (isset($_POST['pull']))
-      {
-         if ($_SESSION["team"] == "plus")
-         {
-            print "You guessed for team evil...";
-            $sql = "UPDATE clouds SET value=value+1 WHERE cloud_id = " . $_GET['cloud_id'];
-            $result = $pdo->query($sql);
+        if (isset($_POST['pull'])) {
+            if ($_SESSION["team"] == "plus") {
+               print "You guessed for team evil...";
+               $dynamodb->updateItem([
+                  'TableName' => 'cloud_tug_of_war',
+                  'Key' => [
+                        'cloud_id' => ['N' => (string) $cloudId],
+                  ],
+                  'UpdateExpression' => 'SET value = value + :val',
+                  'ExpressionAttributeValues' => [
+                        ':val' => ['N' => '1'],
+                  ],
+               ]);
+            }
+            if ($_SESSION["team"] == "minus") {
+               print "You guessed for team good...";
+               $dynamodb->updateItem([
+                  'TableName' => 'cloud_tug_of_war',
+                  'Key' => [
+                     'cloud_id' => ['N' => (string) $cloudId],
+                  ],
+                  'UpdateExpression' => 'SET value = value - :val',
+                  'ExpressionAttributeValues' => [
+                     ':val' => ['N' => '1'],
+                  ],
+               ]);
+            }
          }
-         if ($_SESSION["team"] == "minus")
-         {
-            print "You guessed for team good...";   
-            $sql = "UPDATE clouds SET value=value-1 WHERE cloud_id = " . $_GET['cloud_id'];
-            $result = $pdo->query($sql);
-         }
-      }
-
-      $sql = "SELECT * FROM clouds WHERE cloud_id = " . $_GET['cloud_id'];
-      foreach ($pdo->query($sql) as $row)
-      {
-         print "<h2>Value: " . $row["value"] . " (Goal: " . $row["max_value"] . ")</h2>";
-      }
       
-      if (!isset($_SESSION["finished"]))
-      {
-         ?>
-         <form action="" method="post">
-            <input type="submit" name="pull" value="Pull">
-         </form>
-         <?php
-      }
-      else
-      {  
-         //TODO print the number that had to be guessed. And print current score. Button to next round. 
-         print "<h2>game over</h2>";
-         if (intval($row["value"] == intval($row["max_value"])))
-         {
-            print "Team Evil won the round!";
+
+         print "<h2>Value: " . $value . " (Goal: " . $maxValue . ")</h2>";
+
+         if (!isset($_SESSION["finished"])) {
+               ?>
+               <form action="" method="post">
+                  <input type="submit" name="pull" value="Pull">
+               </form>
+               <?php
+         } else {
+               print "<h2>game over</h2>";
+               if (intval($value) == intval($maxValue)) {
+                  print "Team Evil won the round!";
+               } else {
+                  print "Team Good won the round!";
+               }
+               session_destroy();
          }
-         else
-         {
-            print "Team Good won the round!";
-         }
-         session_destroy();
-      }
+      }  
    }
 }
 ?>

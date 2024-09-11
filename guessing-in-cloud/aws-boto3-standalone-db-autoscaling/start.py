@@ -201,25 +201,30 @@ except ClientError as e:
 print("Running new DB instance...")
 print("------------------------------------")
 
+dBClient = boto3.client(
+    'dynamodb',
+    region_name=region
+)
+
 userDataDB = ('#!/bin/bash\n'
               '# extra repo for RedHat rpms\n'
               'yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm\n'
               '# essential tools\n'
               'yum install -y joe htop git\n'
-              '# mysql\n'
-              'yum install -y mariadb mariadb-server\n'
+              '# Install AWS CLI and Python pip\n'
+              'yum install -y awscli python3-pip\n'
+              '# Install boto3 for DynamoDB access\n'
+              'pip3 install boto3\n'
               '\n'
-              'service mariadb start\n'
+              '# Create DynamoDB table using AWS CLI\n'
+              'aws dynamodb create-table --table-name cloud_tug_of_war \\\n'
+              '    --attribute-definitions AttributeName=cloud_id,AttributeType=N \\\n'
+              '    --key-schema AttributeName=cloud_id,KeyType=HASH \\\n'
+              '    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5\n'
               '\n'
-              'echo "create database cloud_tug_of_war" | mysql -u root\n'
-              '\n'
-              'echo "create table clouds ( cloud_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, value INT, max_value INT, PRIMARY KEY (cloud_id))" | mysql -u root cloud_tug_of_war\n'
-              '\n'
-              'echo "CREATE USER \'cloud_tug_of_war\'@\'%\' IDENTIFIED BY \'cloudpass\';" | mysql -u root\n'
-              'echo "GRANT ALL PRIVILEGES ON cloud_tug_of_war.* TO \'cloud_tug_of_war\'@\'%\';" | mysql -u root\n'
-              'echo "FLUSH PRIVILEGES" | mysql -u root\n'
+              '# Note: Ensure IAM role permissions are set correctly for DynamoDB access\n'
               )
-# convert user-data from script with: cat install-mysql | sed "s/^/'/; s/$/\\\n'/"
+
 
 response = ec2Client.run_instances(
     ImageId=imageId,
@@ -263,9 +268,9 @@ userDataWebServer = ('#!/bin/bash\n'
                      'service httpd start\n'
                      '\n'
                      'cd /var/www/html\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/index.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/cloud.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/config.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/addDynamodDB/guessing-in-cloud/web-content/index.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/addDynamodDB/guessing-in-cloud/web-content/cloud.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/addDynamodDB/guessing-in-cloud/web-content/config.php\n'
                      '\n'
                      '# change hostname of db connection\n'
                      'sed -i s/localhost/' + privateIpDB + '/g /var/www/html/config.php\n'

@@ -19,16 +19,30 @@
       include 'config.php';
 
       if (isset($_POST['new_cloud_name'])) {
-         $sql = "INSERT INTO clouds (name, value, max_value) VALUES ('" . $_POST['new_cloud_name'] . "',0," . $_POST['new_cloud_goal'] . ")";
-         $pdo->query($sql);
-      }
-
-      $sql = "SELECT * FROM clouds";
-      foreach ($pdo->query($sql) as $row) {
-         if (abs(intval($row['value'])) < intval($row['max_value'])) {
-            echo "<a href='cloud.php?cloud_id=" . $row['cloud_id'] . "'>" . $row['name'] . "</a> (score: " . $row['value'] . ", goal:" . $row['max_value'] . ")<br />";
+         $dynamodb->putItem([
+             'TableName' => 'cloud_tug_of_war',
+             'Item' => [
+                 'name' => ['S' => $_POST['new_cloud_name']],
+                 'value' => ['N' => '0'],
+                 'max_value' => ['N' => $_POST['new_cloud_goal']],
+             ],
+         ]);
+     }
+ 
+     $result = $dynamodb->scan([
+         'TableName' => 'cloud_tug_of_war',
+     ]);
+ 
+     foreach ($result->get('Items') as $item) {
+         $cloudId = $item['cloud_id']['N'];
+         $name = $item['name']['S'];
+         $value = $item['value']['N'];
+         $maxValue = $item['max_value']['N'];
+ 
+         if (abs(intval($value)) < intval($maxValue)) {
+             echo "<a href='cloud.php?cloud_id=" . $cloudId . "'>" . $name . "</a> (score: " . $value . ", goal:" . $maxValue . ")<br />";
          }
-      }
+     }
       ?>
       <!-- list -->
    </p>

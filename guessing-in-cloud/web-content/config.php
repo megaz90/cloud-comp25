@@ -1,3 +1,13 @@
 <?php
-   $pdo = new PDO('mysql:host=localhost;dbname=cloud_tug_of_war', 'cloud_tug_of_war', 'cloudpass');
+require 'vendor/autoload.php';
+
+use Aws\DynamoDb\DynamoDbClient;
+
+$dynamodb = new DynamoDbClient([
+    'region'  => 'us-east-1',
+    'version' => 'latest',
+    'credentials' => [
+        'profile' => 'default',
+    ],
+]);
 ?>
