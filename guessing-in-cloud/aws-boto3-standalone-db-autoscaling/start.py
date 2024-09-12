@@ -25,10 +25,7 @@ imageId = 'ami-0d5eff06f840b45e9'
 # imageId = 'ami-0cc293023f983ed53'
 
 instanceType = 't2.micro'
-
 keyName = 'vockey'
-
-# for roles see: "aws iam list-roles | grep RoleName"
 iamRole = 'LabInstanceProfile'
 
 
@@ -243,9 +240,11 @@ print(instanceIdDB)
 userDataWebServer = ('#!/bin/bash\n'
                      '# essential tools\n'
                      'yum install -y joe htop git\n'
-                     '# Install AWS CLI or SDK if needed\n'
+                     '# Install AWS CLI\n'
                      'yum install -y aws-cli\n'
-                     '\n'
+                     '# Install Apache Web Server\n'
+                     'yum install -y httpd\n'
+                     '# Start Apache Web Server\n'
                      'service httpd start\n'
                      '\n'
                      'cd /var/www/html\n'
