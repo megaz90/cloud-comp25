@@ -3,7 +3,6 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 
-dynamodb = boto3.client('dynamodb')
 
 ################################################################################################
 #
@@ -13,7 +12,6 @@ dynamodb = boto3.client('dynamodb')
 
 
 region = 'us-east-1'
-# region = 'eu-central-1'
 
 
 ################################################################################################
@@ -23,6 +21,7 @@ region = 'us-east-1'
 ################################################################################################
 
 
+dynamodb = boto3.client('dynamodb')
 client = boto3.setup_default_session(region_name=region)
 ec2Client = boto3.client("ec2")
 ec2Resource = boto3.resource('ec2')
