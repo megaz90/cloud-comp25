@@ -3,6 +3,7 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 
+dynamodb = boto3.client('dynamodb')
 
 ################################################################################################
 #
@@ -36,7 +37,7 @@ print("Deleting auto scaling group...")
 print("------------------------------------")
 
 try:
-    response = asClient.delete_auto_scaling_group(AutoScalingGroupName='tug-of-war-asg-autoscalinggroup', ForceDelete=True)
+    response = asClient.delete_auto_scaling_group(AutoScalingGroupName='guessing-game-asg-autoscalinggroup', ForceDelete=True)
 except ClientError as e:
     print(e)
 
@@ -44,16 +45,33 @@ print("Deleting launch configuration...")
 print("------------------------------------")
 
 try:
-    response = asClient.delete_launch_configuration(LaunchConfigurationName='tug-of-war-asg-launchconfig')
+    response = asClient.delete_launch_configuration(LaunchConfigurationName='guessing-game-asg-launchconfig')
 except ClientError as e:
     print(e)
+
+
+print("Deleting Dynamo DB table...")
+print("------------------------------------")
+
+def delete_dynamodb_table(table_name):
+    try:
+        response = dynamodb.delete_table(TableName=table_name)
+        print(f"Deleting table {table_name}...")
+        waiter = dynamodb.get_waiter('table_not_exists')
+        waiter.wait(TableName=table_name)
+        print(f"Table {table_name} has been deleted.")
+    except ClientError as e:
+        print(f"Error deleting table {table_name}: {e}")
+
+# Specify your table name here
+delete_dynamodb_table('cloud_guessing_game')
 
 
 
 print("Deleting instances...")
 print("------------------------------------")
 
-response = ec2Client.describe_instances(Filters=[{'Name': 'tag-key', 'Values': ['tug-of-war-asg']}])
+response = ec2Client.describe_instances(Filters=[{'Name': 'tag-key', 'Values': ['guessing-game-asg']}])
 print(response)
 reservations = response['Reservations']
 for reservation in reservations:
@@ -69,7 +87,7 @@ print("Deleting load balancer and deps...")
 print("------------------------------------")
 
 try:
-    response = elbv2Client.describe_load_balancers(Names=['tug-of-war-asg-loadbalancer'])
+    response = elbv2Client.describe_load_balancers(Names=['guessing-game-asg-loadbalancer'])
     loadbalancer_arn = response.get('LoadBalancers', [{}])[0].get('LoadBalancerArn', '')
     response = elbv2Client.delete_load_balancer(LoadBalancerArn=loadbalancer_arn)
 
@@ -79,14 +97,14 @@ except ClientError as e:
     print(e)
 
 try:
-    response = elbv2Client.describe_target_groups(Names=['tug-of-war-asg-targetgroup'])
+    response = elbv2Client.describe_target_groups(Names=['guessing-game-asg-targetgroup'])
     while len(response.get('TargetGroups', [{}])) > 0:
         targetgroup_arn = response.get('TargetGroups', [{}])[0].get('TargetGroupArn', '')
         try:
             response = elbv2Client.delete_target_group(TargetGroupArn=targetgroup_arn)
         except ClientError as e:
             print(e)
-        response = elbv2Client.describe_target_groups(Names=['tug-of-war-asg-targetgroup'])
+        response = elbv2Client.describe_target_groups(Names=['guessing-game-asg-targetgroup'])
         time.sleep(5)
 except ClientError as e:
     print(e)
@@ -95,14 +113,14 @@ print("Delete security group...")
 print("------------------------------------")
 
 try:
-    response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['tug-of-war-asg']}])
+    response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['guessing-game-asg']}])
     while len(response.get('SecurityGroups', [{}])) > 0:
         security_group_id = response.get('SecurityGroups', [{}])[0].get('GroupId', '')
         try:
-            response = ec2Client.delete_security_group(GroupName='tug-of-war-asg')
+            response = ec2Client.delete_security_group(GroupName='guessing-game-asg')
         except ClientError as e:
             print(e)
-        response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['tug-of-war-asg']}])
+        response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['guessing-game-asg']}])
         time.sleep(5)
 except ClientError as e:
     print(e)
