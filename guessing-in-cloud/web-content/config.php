@@ -1,3 +1,3 @@
 <?php
-   $pdo = new PDO('mysql:host=localhost;dbname=cloud_tug_of_war', 'cloud_tug_of_war', 'cloudpass');
+   $pdo = new PDO('mysql:host=localhost;dbname=cloud_guessing_game', 'cloud_guessing_game', 'cloudpass');
 ?>
