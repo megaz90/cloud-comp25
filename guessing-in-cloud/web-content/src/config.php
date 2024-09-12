@@ -11,26 +11,7 @@ $dynamoDbClient = new DynamoDbClient([
 
 // Example: Create a DynamoDB table (if you want to create it via PHP)
 // Note: Tables should typically be managed via infrastructure code (CloudFormation/Terraform)
-$tableName = 'guessing-game';
-$dynamoDbClient->createTable([
-   'TableName' => $tableName,
-   'KeySchema' => [
-      [
-         'AttributeName' => 'cloud_id',
-         'KeyType' => 'HASH'  // Partition key
-      ]
-   ],
-   'AttributeDefinitions' => [
-      [
-         'AttributeName' => 'cloud_id',
-         'AttributeType' => 'N'  // Number type
-      ]
-   ],
-   'ProvisionedThroughput' => [
-      'ReadCapacityUnits' => 5,
-      'WriteCapacityUnits' => 5
-   ]
-]);
+$tableName = 'cloud_guessing_game';
 
 // Insert example data
 $dynamoDbClient->putItem([
