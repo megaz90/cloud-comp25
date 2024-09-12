@@ -93,7 +93,7 @@ print("Deleting old auto scaling group...")
 print("------------------------------------")
 
 try:
-    response = asClient.delete_auto_scaling_group(AutoScalingGroupName='tug-of-war-asg-autoscalinggroup', ForceDelete=True)
+    response = asClient.delete_auto_scaling_group(AutoScalingGroupName='guessing-game-asg-autoscalinggroup', ForceDelete=True)
 except ClientError as e:
     print(e)
 
@@ -101,7 +101,7 @@ print("Deleting old launch configuration...")
 print("------------------------------------")
 
 try:
-    response = asClient.delete_launch_configuration(LaunchConfigurationName='tug-of-war-asg-launchconfig')
+    response = asClient.delete_launch_configuration(LaunchConfigurationName='guessing-game-asg-launchconfig')
 except ClientError as e:
     print(e)
 
@@ -110,7 +110,7 @@ except ClientError as e:
 print("Deleting old instances...")
 print("------------------------------------")
 
-response = ec2Client.describe_instances(Filters=[{'Name': 'tag-key', 'Values': ['tug-of-war-asg']}])
+response = ec2Client.describe_instances(Filters=[{'Name': 'tag-key', 'Values': ['guessing-game-asg']}])
 print(response)
 reservations = response['Reservations']
 for reservation in reservations:
@@ -126,7 +126,7 @@ print("Deleting old load balancer and deps...")
 print("------------------------------------")
 
 try:
-    response = elbv2Client.describe_load_balancers(Names=['tug-of-war-asg-loadbalancer'])
+    response = elbv2Client.describe_load_balancers(Names=['guessing-game-asg-loadbalancer'])
     loadbalancer_arn = response.get('LoadBalancers', [{}])[0].get('LoadBalancerArn', '')
     response = elbv2Client.delete_load_balancer(LoadBalancerArn=loadbalancer_arn)
 
@@ -136,14 +136,14 @@ except ClientError as e:
     print(e)
 
 try:
-    response = elbv2Client.describe_target_groups(Names=['tug-of-war-asg-targetgroup'])
+    response = elbv2Client.describe_target_groups(Names=['guessing-game-asg-targetgroup'])
     while len(response.get('TargetGroups', [{}])) > 0:
         targetgroup_arn = response.get('TargetGroups', [{}])[0].get('TargetGroupArn', '')
         try:
             response = elbv2Client.delete_target_group(TargetGroupArn=targetgroup_arn)
         except ClientError as e:
             print(e)
-        response = elbv2Client.describe_target_groups(Names=['tug-of-war-asg-targetgroup'])
+        response = elbv2Client.describe_target_groups(Names=['guessing-game-asg-targetgroup'])
         time.sleep(5)
 except ClientError as e:
     print(e)
@@ -152,14 +152,14 @@ print("Delete old security group...")
 print("------------------------------------")
 
 try:
-    response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['tug-of-war-asg']}])
+    response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['guessing-game-asg']}])
     while len(response.get('SecurityGroups', [{}])) > 0:
         security_group_id = response.get('SecurityGroups', [{}])[0].get('GroupId', '')
         try:
-            response = ec2Client.delete_security_group(GroupName='tug-of-war-asg')
+            response = ec2Client.delete_security_group(GroupName='guessing-game-asg')
         except ClientError as e:
             print(e)
-        response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['tug-of-war-asg']}])
+        response = ec2Client.describe_security_groups(Filters=[{'Name': 'group-name', 'Values': ['guessing-game-asg']}])
         time.sleep(5)
 except ClientError as e:
     print(e)
@@ -168,8 +168,8 @@ print("Create security group...")
 print("------------------------------------")
 
 try:
-    response = ec2Client.create_security_group(GroupName='tug-of-war-asg',
-                                               Description='tug-of-war-asg',
+    response = ec2Client.create_security_group(GroupName='guessing-game-asg',
+                                               Description='guessing-game-asg',
                                                VpcId=vpc_id)
     security_group_id = response['GroupId']
     print('Security Group Created %s in vpc %s.' % (security_group_id, vpc_id))
@@ -211,12 +211,12 @@ userDataDB = ('#!/bin/bash\n'
               '\n'
               'service mariadb start\n'
               '\n'
-              'echo "create database cloud_tug_of_war" | mysql -u root\n'
+              'echo "create database cloud_guessing_game" | mysql -u root\n'
               '\n'
-              'echo "create table clouds ( cloud_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, value INT, max_value INT, PRIMARY KEY (cloud_id))" | mysql -u root cloud_tug_of_war\n'
+              'echo "create table clouds ( cloud_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, value INT, max_value INT, PRIMARY KEY (cloud_id))" | mysql -u root cloud_guessing_game\n'
               '\n'
-              'echo "CREATE USER \'cloud_tug_of_war\'@\'%\' IDENTIFIED BY \'cloudpass\';" | mysql -u root\n'
-              'echo "GRANT ALL PRIVILEGES ON cloud_tug_of_war.* TO \'cloud_tug_of_war\'@\'%\';" | mysql -u root\n'
+              'echo "CREATE USER \'cloud_guessing_game\'@\'%\' IDENTIFIED BY \'cloudpass\';" | mysql -u root\n'
+              'echo "GRANT ALL PRIVILEGES ON cloud_guessing_game.* TO \'cloud_guessing_game\'@\'%\';" | mysql -u root\n'
               'echo "FLUSH PRIVILEGES" | mysql -u root\n'
               )
 # convert user-data from script with: cat install-mysql | sed "s/^/'/; s/$/\\\n'/"
@@ -236,8 +236,8 @@ response = ec2Client.run_instances(
         {
             'ResourceType': 'instance',
             'Tags': [
-                {'Key': 'Name', 'Value': 'tug-of-war-asg-db1'},
-                {'Key': 'tug-of-war-asg', 'Value': 'db'}
+                {'Key': 'Name', 'Value': 'guessing-game-asg-db1'},
+                {'Key': 'guessing-game-asg', 'Value': 'db'}
             ],
         }
     ],
@@ -279,7 +279,7 @@ response = asClient.create_launch_configuration(
     IamInstanceProfile=iamRole,
     ImageId=imageId,
     InstanceType=instanceType,
-    LaunchConfigurationName='tug-of-war-asg-launchconfig',
+    LaunchConfigurationName='guessing-game-asg-launchconfig',
     UserData=userDataWebServer,
     KeyName=keyName,
     SecurityGroups=[
@@ -293,7 +293,7 @@ print("Creating load balancer...")
 print("------------------------------------")
 
 response = elbv2Client.create_load_balancer(
-    Name='tug-of-war-asg-loadbalancer',
+    Name='guessing-game-asg-loadbalancer',
     Subnets=[
         subnet_id1,
         subnet_id2,
@@ -311,7 +311,7 @@ print("Creating target group...")
 print("------------------------------------")
 
 response = elbv2Client.create_target_group(
-    Name='tug-of-war-asg-targetgroup',
+    Name='guessing-game-asg-targetgroup',
     Port=80,
     Protocol='HTTP',
     VpcId=vpc_id,
@@ -348,8 +348,8 @@ print("Creating auto scaling group...")
 print("------------------------------------")
 
 response = asClient.create_auto_scaling_group(
-    AutoScalingGroupName='tug-of-war-asg-autoscalinggroup',
-    LaunchConfigurationName='tug-of-war-asg-launchconfig',
+    AutoScalingGroupName='guessing-game-asg-autoscalinggroup',
+    LaunchConfigurationName='guessing-game-asg-launchconfig',
     MaxSize=3,
     MinSize=1,
     HealthCheckGracePeriod=120,
@@ -359,27 +359,27 @@ response = asClient.create_auto_scaling_group(
     ],
     VPCZoneIdentifier=subnet_id1 + ', ' + ', ' + subnet_id2 + ', ' + subnet_id3,
     Tags=[
-        {'Key': 'Name', 'Value': 'tug-of-war-asg-webserver', 'PropagateAtLaunch': True},
-        {'Key': 'tug-of-war', 'Value': 'webserver', 'PropagateAtLaunch': True}
+        {'Key': 'Name', 'Value': 'guessing-game-asg-webserver', 'PropagateAtLaunch': True},
+        {'Key': 'guessing-game', 'Value': 'webserver', 'PropagateAtLaunch': True}
     ],
 )
 
 print(loadbalancer_arn)
 print(targetgroup_arn)
-print('app/tug-of-war-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/tug-of-war-asg-targetgroup/'+str(targetgroup_arn).split('/')[2])
+print('app/guessing-game-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/guessing-game-asg-targetgroup/'+str(targetgroup_arn).split('/')[2])
 
 print('If target group is not found, creation was delayed in AWS Academy lab, need to add a check that target group is'
       'existing before executing the next lines in the future... If the error occurs, rerun script...')
 
 response = asClient.put_scaling_policy(
-    AutoScalingGroupName='tug-of-war-asg-autoscalinggroup',
-    PolicyName='tug-of-war-asg-scalingpolicy',
+    AutoScalingGroupName='guessing-game-asg-autoscalinggroup',
+    PolicyName='guessing-game-asg-scalingpolicy',
     PolicyType='TargetTrackingScaling',
     EstimatedInstanceWarmup=60,
     TargetTrackingConfiguration={
         'PredefinedMetricSpecification': {
             'PredefinedMetricType': 'ALBRequestCountPerTarget',
-            'ResourceLabel': 'app/tug-of-war-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/tug-of-war-asg-targetgroup/'+str(targetgroup_arn).split('/')[2]
+            'ResourceLabel': 'app/guessing-game-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/guessing-game-asg-targetgroup/'+str(targetgroup_arn).split('/')[2]
         },
         'TargetValue': 5.0,
     }
