@@ -6,7 +6,3 @@ RewriteCond %{REQUEST_URI} !^/src/index.php$
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ /src/index.php [L]
-
-# Test .htaccess processing
-Order Allow,Deny
-Deny from all
