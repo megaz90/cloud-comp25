@@ -1,7 +1,6 @@
 <?php
-require 'vendor/autoload.php';
-include 'config.php';
-include 'functions.php';
+include './config.php';
+include './functions.php';
 
 //Dynamo Client
 $client = createSDK();
