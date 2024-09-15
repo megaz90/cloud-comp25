@@ -16,9 +16,9 @@ function createNewGame($dynamoDb, $tableName, $gameName, $maxValue)
                 'max_value' => ['N' => (string)$maxValue], // Maximum goal value
             ],
         ]);
-        echo "Game '$gameName' created successfully.<br/>";
-    } catch (AwsException $e) {
-        echo "Error creating game: " . $e->getMessage() . "<br/>";
+        return $result;
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
     }
 }
 
@@ -32,15 +32,10 @@ function listGames($dynamoDb, $tableName)
 
         if (count($result['Items']) > 0) {
             return $result['Items'];
-            // foreach ($result['Items'] as $game) {
-            //     echo "<a href='cloud.php?cloud_id=" . $game['cloud_id']['S'] . "'>"
-            //         . $game['name']['S'] . "</a> (score: " . $game['value']['N']
-            //         . ", goal: " . $game['max_value']['N'] . ")<br />";
-            // }
         } else {
-            echo "No games available.<br/>";
+            return [];
         }
-    } catch (AwsException $e) {
-        echo "Error listing games: " . $e->getMessage() . "<br/>";
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
     }
 }
