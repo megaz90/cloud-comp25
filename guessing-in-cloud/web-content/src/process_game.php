@@ -10,3 +10,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_cloud_name'], $_P
     $maxValue = $_POST['new_cloud_goal'];
     createNewGame($clientDynamo, 'cloud_guessing_game', $gameName, $maxValue);
 }
+header("Location:./index.php");
