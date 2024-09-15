@@ -1,6 +1,12 @@
 <?php
-// require 'vendor/autoload.php';
-// include 'config.php';
+require 'vendor/autoload.php';
+include 'config.php';
+include 'functions.php';
+
+//Dynamo Client
+$client = createSDK();
+//All games
+$games = listGames($client, 'cloud_guessing_game');
 ?>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -19,30 +25,22 @@
       Already existing games:
    </p>
    <p>
-      <?php
-
-
-      // if (isset($_POST['new_cloud_name'])) {
-      //    $sql = "INSERT INTO clouds (name, value, max_value) VALUES ('" . $_POST['new_cloud_name'] . "',0," . $_POST['new_cloud_goal'] . ")";
-      //    $pdo->query($sql);
-      // }
-
-      // $sql = "SELECT * FROM clouds";
-      // foreach ($pdo->query($sql) as $row) {
-      //    if (abs(intval($row['value'])) < intval($row['max_value'])) {
-      //       echo "<a href='cloud.php?cloud_id=" . $row['cloud_id'] . "'>" . $row['name'] . "</a> (score: " . $row['value'] . ", goal:" . $row['max_value'] . ")<br />";
-      //    }
-      // }
-      // 
-      ?>
-      <!-- list -->
-   </p>
-   <p>
-      or create a new game:
-   <form action="" method="post">
-      Game Name: <input class="form-control" name="new_cloud_name" value="">
-      Maximum Number: <input class="form-control" name="new_cloud_goal" value="10">
-      <input type="submit" value="Create">
-   </form>
-   </p>
+      <?php if (count($games) > 0): ?>
+         <?php foreach ($games as $game): ?>
+            <a href='cloud.php?cloud_id=<?= $game['cloud_id']['S'] ?>'>
+               <?= $game['name']['S'] ?>
+            </a> (score: <?= $game['value']['N'] ?>, goal: <?= $game['max_value']['N'] ?>)<br />
+         <?php endforeach; ?>
+      <?php else: ?>
+   <p>No games found.</p>
+<?php endif; ?>
+</p>
+<p>
+   or create a new game:
+<form action="./process_game.php" method="POST">
+   Game Name: <input class="form-control" name="new_cloud_name" value="">
+   Maximum Number: <input class="form-control" name="new_cloud_goal" value="10">
+   <input type="submit" value="Create">
+</form>
+</p>
 </div>

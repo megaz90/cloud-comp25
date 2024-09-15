@@ -59,7 +59,7 @@ def create_dynamodb_table():
         table = dynamodb.create_table(
             TableName='cloud_guessing_game',
             KeySchema=[{'AttributeName': 'cloud_id', 'KeyType': 'HASH'}],
-            AttributeDefinitions=[{'AttributeName': 'cloud_id', 'AttributeType': 'N'}],
+            AttributeDefinitions=[{'AttributeName': 'cloud_id', 'AttributeType': 'S'}],
             ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
         )
         table.wait_until_exists()
