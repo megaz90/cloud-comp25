@@ -14,12 +14,21 @@ if (!$gameId) {
 }
 
 // Fetch the game data from DynamoDB
-$game = getGameById($client, TABLE_NAME, $gameId);
+$gameData = getGameById($client, TABLE_NAME, $gameId);
 
 // Check if the game exists
-if (!$game) {
+if (!$gameData) {
    echo "Game not found!";
    exit;
+}
+
+// Loop through the results to find the game and player data
+foreach ($gameData as $item) {
+   if ($item['player_id']['S'] === 'game') {
+      $game = $item; // This is the game metadata
+   } else {
+      $player = $item; // This is the player data
+   }
 }
 
 // Handle game guesses
@@ -32,6 +41,8 @@ if ($guess) {
 // Fetch the list of players in the game
 $players = listPlayersInGame($client, TABLE_NAME, $gameId);
 $gameWon = checkIfGameIsWon($client, TABLE_NAME, $gameId);
+
+$playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
 
 ?>
 <!DOCTYPE html>
