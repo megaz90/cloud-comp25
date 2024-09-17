@@ -7,16 +7,19 @@ use Aws\Exception\AwsException;
 function createNewGame($dynamoDb, $tableName, $gameName, $maxValue)
 {
     try {
+        $targetValue = rand(1, $maxValue);
+        $gameId = uniqid();
         $result = $dynamoDb->putItem([
             'TableName' => $tableName,
             'Item' => [
-                'cloud_id' => ['S' => uniqid()], // Unique game ID
-                'name' => ['S' => $gameName],   // Game name
-                'value' => ['N' => '0'],        // Initial score
+                'game_id' => ['S' => $gameId],    // Unique game ID
+                'player_id' => ['S' => 'game'],   // Placeholder to store game metadata
+                'name' => ['S' => $gameName],     // Game name
                 'max_value' => ['N' => (string)$maxValue], // Maximum goal value
+                'target_value' => ['N' => (string)$targetValue], // The randomly generated target number
             ],
         ]);
-        return $result;
+        return $gameId;
     } catch (AwsException $ex) {
         throw new Exception($ex->getMessage());
     }
@@ -35,6 +38,209 @@ function listGames($dynamoDb, $tableName)
         } else {
             return [];
         }
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+function joinGame($dynamoDb, $tableName, $gameId, $playerName)
+{
+    try {
+        $playerId = uniqid();
+
+        // Initialize the player with 0 attempts and no guesses
+        $result = $dynamoDb->putItem([
+            'TableName' => $tableName,
+            'Item' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => $playerId],
+                'player_name' => ['S' => $playerName],
+                'attempts' => ['N' => '0'],
+                'last_guess' => ['N' => '0'], // Initially no guess
+            ],
+        ]);
+
+        return $playerId; // Return the player's unique ID
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+function makeGuess($dynamoDb, $tableName, $gameId, $playerId, $guess)
+{
+    try {
+        $gameResult = $dynamoDb->getItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => 'game'],
+            ],
+        ]);
+
+        $playerResult = $dynamoDb->getItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => $playerId],
+            ],
+        ]);
+
+        if (!isset($gameResult['Item']) || !isset($playerResult['Item'])) {
+            throw new Exception('Game or player does not exist.');
+        }
+
+        // Extract the game and player information
+        $targetValue = (int)$gameResult['Item']['target_value']['N'];
+        $attempts = (int)$playerResult['Item']['attempts']['N'];
+
+        // Increment the attempts
+        $attempts++;
+
+        // Compare the guess to the target value
+        if ($guess == $targetValue) {
+            $message = "Congratulations! You've guessed the correct number {$targetValue} in {$attempts} attempts!";
+        } elseif ($guess < $targetValue) {
+            $message = "Too low! Try again.";
+        } else {
+            $message = "Too high! Try again.";
+        }
+
+        // Update the player's attempts and last guess in DynamoDB
+        $dynamoDb->updateItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => $playerId],
+            ],
+            'UpdateExpression' => 'SET attempts = :attempts, last_guess = :guess',
+            'ExpressionAttributeValues' => [
+                ':attempts' => ['N' => (string)$attempts],
+                ':guess' => ['N' => (string)$guess],
+            ],
+        ]);
+
+        return $message; // Return the message to the player
+
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+function getPlayerStatus($dynamoDb, $tableName, $gameId, $playerId)
+{
+    try {
+        $result = $dynamoDb->getItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => $playerId],
+            ],
+        ]);
+
+        return $result['Item'] ?? null;
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+// Function to check if the game is won by any player
+function checkIfGameIsWon($dynamoDb, $tableName, $gameId)
+{
+    try {
+        $result = $dynamoDb->scan([
+            'TableName' => $tableName,
+            'FilterExpression' => 'game_id = :gameId AND last_guess = target_value',
+            'ExpressionAttributeValues' => [
+                ':gameId' => ['S' => $gameId],
+            ],
+        ]);
+
+        if (count($result['Items']) > 0) {
+            return true; // Game has been won
+        }
+
+        return false; // Game is still active
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+// Function to list all players in a game
+function listPlayersInGame($dynamoDb, $tableName, $gameId)
+{
+    try {
+        $result = $dynamoDb->scan([
+            'TableName' => $tableName,
+            'FilterExpression' => 'game_id = :gameId AND player_id <> :game',
+            'ExpressionAttributeValues' => [
+                ':gameId' => ['S' => $gameId],
+                ':game' => ['S' => 'game'] // Exclude the game metadata
+            ],
+        ]);
+
+        return $result['Items'];
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+
+// Function to retrieve a specific game by its game_id from DynamoDB
+function getGameById($dynamoDb, $tableName, $gameId)
+{
+    try {
+        // Fetch the game metadata (which has player_id = 'game')
+        $result = $dynamoDb->getItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId]
+            ],
+        ]);
+
+        if (isset($result['Item'])) {
+            return $result['Item']; // Return game data
+        } else {
+            return null; // Game not found
+        }
+    } catch (AwsException $ex) {
+        throw new Exception($ex->getMessage());
+    }
+}
+
+// Function to add a player to a game
+function addPlayerToGame($dynamoDb, $tableName, $gameId, $playerName)
+{
+    try {
+        // Check if the game exists
+        $gameResult = $dynamoDb->getItem([
+            'TableName' => $tableName,
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => 'game'], // Game metadata has a player_id of 'game'
+            ],
+        ]);
+
+        if (!isset($gameResult['Item'])) {
+            throw new Exception('Game not found.');
+        }
+
+        // Generate a unique player ID
+        $playerId = uniqid();
+
+        // Add the player to the game
+        $result = $dynamoDb->putItem([
+            'TableName' => $tableName,
+            'Item' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => $playerId],
+                'player_name' => ['S' => $playerName],
+                'attempts' => ['N' => '0'],
+                'last_guess' => ['N' => '0'], // Initially no guess
+            ],
+        ]);
+
+        return $playerId; // Return the player's unique ID
+
     } catch (AwsException $ex) {
         throw new Exception($ex->getMessage());
     }

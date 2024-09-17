@@ -1,7 +1,12 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 
+session_start();
+
 use Aws\Exception\AwsException;
+
+define('ADMIN_PASSWORD', 'password');
+define('TABLE_NAME', 'cloud_guessing_game');
 
 function createSDK()
 {

@@ -5,7 +5,7 @@ include './functions.php';
 //Get DynamoDB Client
 $client = createSDK();
 //Get all games
-$games = listGames($client, 'cloud_guessing_game');
+$games = listGames($client, TABLE_NAME);
 
 ?>
 <!DOCTYPE html>
@@ -38,9 +38,9 @@ $games = listGames($client, 'cloud_guessing_game');
                <ul class="list-group">
                   <?php foreach ($games as $game): ?>
                      <li class="list-group-item">
-                        <a href='cloud.php?cloud_id=<?= $game['cloud_id']['S'] ?>'>
+                        <a href='game.php?game_id=<?= $game['game_id']['S'] ?>'>
                            <?= $game['name']['S'] ?>
-                        </a> (score: <?= $game['value']['N'] ?>, goal: <?= $game['max_value']['N'] ?>)
+                        </a> (score: <?= $game['target_value']['N'] ?>, goal: <?= $game['max_value']['N'] ?>)
                      </li>
                   <?php endforeach; ?>
                </ul>
@@ -61,6 +61,10 @@ $games = listGames($client, 'cloud_guessing_game');
                <div class="form-group">
                   <label for="number">Maximum Number</label>
                   <input type="number" class="form-control" id="number" name="new_cloud_goal">
+               </div>
+               <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" class="form-control" id="password" name="password">
                </div>
                <button type="submit" class="btn btn-primary">Create</button>
             </form>
