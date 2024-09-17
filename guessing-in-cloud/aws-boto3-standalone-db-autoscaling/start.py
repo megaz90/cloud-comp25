@@ -170,6 +170,22 @@ try:
 except ClientError as e:
     print(e)
 
+# Function to delete a DynamoDB table if it exists
+def delete_dynamodb_table(table_name):
+    try:
+        table = dynamodb.Table(table_name)
+        table.delete()
+        table.wait_until_not_exists()
+        print(f"DynamoDB Table '{table_name}' deleted successfully.")
+    except ClientError as e:
+        print(f"Error deleting DynamoDB Table: {e}")
+
+# Deleting old DynamoDB table
+print("Deleting old DynamoDB table...")
+delete_dynamodb_table('cloud_guessing_game')
+print("------------------------------------")
+
+
 print("Create Dynamo DB tables")
 print("------------------------------------")
 # Creating DynamoDB table (if it doesn't exist)
