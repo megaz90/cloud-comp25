@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError
 
 
 region = 'us-east-1'
-# region = 'eu-central-1'
 
 
 ################################################################################################
@@ -22,6 +21,7 @@ region = 'us-east-1'
 ################################################################################################
 
 
+dynamodb = boto3.client('dynamodb')
 client = boto3.setup_default_session(region_name=region)
 ec2Client = boto3.client("ec2")
 ec2Resource = boto3.resource('ec2')
@@ -47,6 +47,23 @@ try:
     response = asClient.delete_launch_configuration(LaunchConfigurationName='guessing-game-asg-launchconfig')
 except ClientError as e:
     print(e)
+
+
+print("Deleting Dynamo DB table...")
+print("------------------------------------")
+
+def delete_dynamodb_table(table_name):
+    try:
+        response = dynamodb.delete_table(TableName=table_name)
+        print(f"Deleting table {table_name}...")
+        waiter = dynamodb.get_waiter('table_not_exists')
+        waiter.wait(TableName=table_name)
+        print(f"Table {table_name} has been deleted.")
+    except ClientError as e:
+        print(f"Error deleting table {table_name}: {e}")
+
+# Specify your table name here
+delete_dynamodb_table('cloud_guessing_game')
 
 
 

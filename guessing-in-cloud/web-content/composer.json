@@ -1,0 +1,17 @@
+{
+    "name": "furqan/guessinggame",
+    "autoload": {
+        "psr-4": {
+            "Furqan\\Guessinggame\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "megaz90",
+            "email": "furqanamjad150@gmail.com"
+        }
+    ],
+    "require": {
+        "aws/aws-sdk-php": "^3.321"
+    }
+}
