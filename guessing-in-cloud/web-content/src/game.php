@@ -22,6 +22,13 @@ if (!$game) {
    exit;
 }
 
+// Handle game guesses
+$guess = (int) ($_POST['guess'] ?? 0);
+$message = '';
+if ($guess) {
+   $message = makeGuess($client, TABLE_NAME, $gameId, $_SESSION['player_id'], $guess);
+}
+
 // Fetch the list of players in the game
 $players = listPlayersInGame($client, TABLE_NAME, $gameId);
 $gameWon = checkIfGameIsWon($client, TABLE_NAME, $gameId);
@@ -47,7 +54,7 @@ $gameWon = checkIfGameIsWon($client, TABLE_NAME, $gameId);
          </div>
       </div>
 
-      <?php if ($_SESSION['player_name'] && $_SESSION['player_id']): ?>
+      <?php if (isset($_SESSION['player_name']) && isset($_SESSION['player_id'])): ?>
          <div class="mt-4">
             <h1 class="text-center">Guess a number between 1 and <?= $game['max_value']['N'] ?>.</h1>
             <p class="text-center">Game: <strong><?= $game['name']['S'] ?></strong></p>
@@ -95,6 +102,10 @@ $gameWon = checkIfGameIsWon($client, TABLE_NAME, $gameId);
                <div class="form-group">
                   <label for="player_name">Enter your name:</label>
                   <input type="text" name="player_name" id="player_name" class="form-control" placeholder="Your name" required>
+               </div>
+               <div class="form-group">
+                  <label for="player_id">Enter your ID to continue old game:</label>
+                  <input type="text" name="player_id" id="player_id" class="form-control" placeholder="If you remember your ID then enter here other new Game will begin...">
                </div>
                <button type="submit" class="btn btn-primary btn-block">Join Game</button>
             </form>

@@ -40,7 +40,7 @@ $games = listGames($client, TABLE_NAME);
                      <li class="list-group-item">
                         <a href='game.php?game_id=<?= $game['game_id']['S'] ?>'>
                            <?= $game['name']['S'] ?>
-                        </a> (score: <?= $game['target_value']['N'] ?>, goal: <?= $game['max_value']['N'] ?>)
+                        </a> (goal: <?= $game['max_value']['N'] ?>)
                      </li>
                   <?php endforeach; ?>
                </ul>
