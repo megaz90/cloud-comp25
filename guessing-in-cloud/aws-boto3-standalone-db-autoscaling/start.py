@@ -270,15 +270,15 @@ userDataWebServer = ('#!/bin/bash\n'
                      'sudo mkdir /var/www/html/src\n'
                      '\n'
                      'cd /var/www/html/src\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/src/index.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/src/cloud.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/src/config.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/src/functions.php\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/src/process_game.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/src/index.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/src/cloud.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/src/config.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/src/functions.php\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/src/process_game.php\n'
                      '\n'
                      'cd /var/www/html\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/composer.json\n'
-                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/feature/dynamodb/guessing-in-cloud/web-content/.htaccess\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/composer.json\n'
+                     'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/.htaccess\n'
                      '\n'
                      'sudo sed -i "s|DirectoryIndex index.html|DirectoryIndex index.php index.html|" /etc/httpd/conf/httpd.conf\n'
                      'sudo sed -i \'/<Directory "\\/var\\/www\\/html">/,+21 s/AllowOverride None/AllowOverride All/\' /etc/httpd/conf/httpd.conf\n'
@@ -390,9 +390,6 @@ response = asClient.create_auto_scaling_group(
 print(loadbalancer_arn)
 print(targetgroup_arn)
 print('app/guessing-game-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/guessing-game-asg-targetgroup/'+str(targetgroup_arn).split('/')[2])
-
-print('If target group is not found, creation was delayed in AWS Academy lab, need to add a check that target group is'
-      'existing before executing the next lines in the future... If the error occurs, rerun script...')
 
 response = asClient.put_scaling_policy(
     AutoScalingGroupName='guessing-game-asg-autoscalinggroup',
