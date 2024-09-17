@@ -7,7 +7,6 @@ $client = createSDK();
 
 // Get game ID from the URL
 $gameId = $_GET['game_id'] ?? null;
-$playerId = $_GET['player_id'] ?? null;
 
 if (!$gameId) {
    echo "Invalid Game ID!";
@@ -21,30 +20,6 @@ $game = getGameById($client, TABLE_NAME, $gameId);
 if (!$game) {
    echo "Game not found!";
    exit;
-}
-
-// Check if player is already part of the game
-$playerStatus = $playerId ? getPlayerStatus($client, TABLE_NAME, $gameId, $playerId) : null;
-
-// Handle player information
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   $playerName = $_POST['player_name'] ?? null;
-
-   if ($playerName) {
-      // Save player information in the session
-      $_SESSION['player_name'] = $playerName;
-      $_SESSION['player_id'] = $playerId;
-
-      // Add the player to the game
-      addPlayerToGame($client, TABLE_NAME, $gameId, $playerId, $playerName);
-   }
-
-   // Handle game guesses
-   $guess = (int) ($_POST['guess'] ?? 0);
-   $message = '';
-   if ($guess) {
-      $message = makeGuess($client, TABLE_NAME, $gameId, $playerId, $guess);
-   }
 }
 
 // Fetch the list of players in the game
@@ -116,7 +91,7 @@ $gameWon = checkIfGameIsWon($client, TABLE_NAME, $gameId);
       <?php else: ?>
          <div class="mt-4">
             <h1 class="text-center">Join the Game</h1>
-            <form method="POST" action="./process_player.php">
+            <form method="POST" action="./process_player.php?game_id=<?= $gameId ?>">
                <div class="form-group">
                   <label for="player_name">Enter your name:</label>
                   <input type="text" name="player_name" id="player_name" class="form-control" placeholder="Your name" required>

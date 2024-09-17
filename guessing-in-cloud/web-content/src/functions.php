@@ -190,17 +190,18 @@ function getGameById($dynamoDb, $tableName, $gameId)
 {
     try {
         // Fetch the game metadata (which has player_id = 'game')
-        $result = $dynamoDb->getItem([
+        $result = $dynamoDb->query([
             'TableName' => $tableName,
-            'Key' => [
-                'game_id' => ['S' => $gameId]
+            'KeyConditionExpression' => 'game_id = :game_id',
+            'ExpressionAttributeValues' => [
+                ':game_id' => ['S' => $gameId]
             ],
         ]);
 
-        if (isset($result['Item'])) {
-            return $result['Item']; // Return game data
+        if (isset($result['Items']) && count($result['Items']) > 0) {
+            return $result['Items']; // Return list of games
         } else {
-            return null; // Game not found
+            return []; // No games found
         }
     } catch (AwsException $ex) {
         throw new Exception($ex->getMessage());
@@ -208,7 +209,7 @@ function getGameById($dynamoDb, $tableName, $gameId)
 }
 
 // Function to add a player to a game
-function addPlayerToGame($dynamoDb, $tableName, $gameId, $playerName)
+function addPlayerToGame($dynamoDb, $tableName, $gameId, $playerId, $playerName)
 {
     try {
         // Check if the game exists
@@ -223,9 +224,6 @@ function addPlayerToGame($dynamoDb, $tableName, $gameId, $playerName)
         if (!isset($gameResult['Item'])) {
             throw new Exception('Game not found.');
         }
-
-        // Generate a unique player ID
-        $playerId = uniqid();
 
         // Add the player to the game
         $result = $dynamoDb->putItem([
