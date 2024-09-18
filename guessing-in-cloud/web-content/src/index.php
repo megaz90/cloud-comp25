@@ -26,7 +26,7 @@ $games = listGames($client, TABLE_NAME);
       <div class="row">
          <div class="col-md-12">
             <nav class="navbar navbar-dark bg-dark">
-               <a class="navbar-brand ml-auto" href="index.php">Home</a>
+               <a class="navbar-brand mr-auto" href="index.php">Home</a>
                <span class="navbar-brand mb-0 h1">Number Guesser Game</span>
             </nav>
          </div>
