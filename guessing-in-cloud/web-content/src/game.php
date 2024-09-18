@@ -64,6 +64,7 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
       <div class="row">
          <div class="col-md-12">
             <nav class="navbar navbar-dark bg-dark">
+               <a class="navbar-brand ml-auto" href="index.php">Home</a>
                <span class="navbar-brand mb-0 h1">Number Guesser Game</span>
             </nav>
          </div>
@@ -121,7 +122,7 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
                </div>
                <div class="form-group">
                   <label for="player_id">Enter your ID to continue old game:</label>
-                  <input type="text" name="player_id" id="player_id" class="form-control" placeholder="If you remember your ID then enter here other new Game will begin...">
+                  <input type="text" name="player_id" id="player_id" class="form-control" placeholder="If you remember your ID then enter here otherwise new Game will begin...">
                </div>
                <button type="submit" class="btn btn-primary btn-block">Join Game</button>
             </form>

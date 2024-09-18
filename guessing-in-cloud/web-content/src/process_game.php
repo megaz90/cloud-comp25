@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_cloud_name'], $_P
         $gameName = $_POST['new_cloud_name'];
         $maxValue = $_POST['new_cloud_goal'];
         createNewGame($clientDynamo, TABLE_NAME, $gameName, $maxValue);
+    } else {
+        $_SESSION['error_password'] = "Incorrect Password!";
     }
 }
 header("Location:./index.php");

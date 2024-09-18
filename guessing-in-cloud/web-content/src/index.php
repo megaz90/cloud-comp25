@@ -26,6 +26,7 @@ $games = listGames($client, TABLE_NAME);
       <div class="row">
          <div class="col-md-12">
             <nav class="navbar navbar-dark bg-dark">
+               <a class="navbar-brand ml-auto" href="index.php">Home</a>
                <span class="navbar-brand mb-0 h1">Number Guesser Game</span>
             </nav>
          </div>
@@ -67,6 +68,10 @@ $games = listGames($client, TABLE_NAME);
                <div class="form-group">
                   <label for="password">Password</label>
                   <input type="password" class="form-control" id="password" name="password">
+                  <?php if (isset($_SESSION['error_password'])): ?>
+                     <span class="text-danger"><?= $_SESSION['error_password'] ?></span>
+                     <?php unset($_SESSION['error_password']); ?>
+                  <?php endif; ?>
                </div>
                <button type="submit" class="btn btn-primary">Create</button>
             </form>

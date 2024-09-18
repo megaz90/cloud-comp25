@@ -38,9 +38,9 @@ function listGames($dynamoDb, $tableName)
             $data = [];
             foreach ($result['Items'] as $item) {
                 if ($item['player_id']['S'] === 'game') {
-                    $data['game'] = $item; // This is the game metadata
+                    $data['game'][] = $item; // This is the game metadata
                 } else {
-                    $data['player'] = $item; // This is the player data
+                    $data['player'][] = $item; // This is the player data
                 }
             }
             return $data;
@@ -156,19 +156,36 @@ function getPlayerStatus($dynamoDb, $tableName, $gameId, $playerId)
 function checkIfGameIsWon($dynamoDb, $tableName, $gameId)
 {
     try {
-        $result = $dynamoDb->scan([
+        $gameMetaResult = $dynamoDb->getItem([
             'TableName' => $tableName,
-            'FilterExpression' => 'game_id = :gameId AND last_guess = target_value',
-            'ExpressionAttributeValues' => [
-                ':gameId' => ['S' => $gameId],
+            'Key' => [
+                'game_id' => ['S' => $gameId],
+                'player_id' => ['S' => 'game'], // Metadata for the game
             ],
         ]);
 
-        if (count($result['Items']) > 0) {
-            return true; // Game has been won
+        if (!isset($gameMetaResult['Item'])) {
+            throw new Exception("Game metadata not found for game_id: $gameId");
         }
 
-        return false; // Game is still active
+        $targetValue = $gameMetaResult['Item']['target_value']['N'];
+
+        $result = $dynamoDb->query([
+            'TableName' => $tableName,
+            'KeyConditionExpression' => 'game_id = :gameId AND player_id <> :game', // Exclude the 'game' record
+            'ExpressionAttributeValues' => [
+                ':gameId' => ['S' => $gameId],
+                ':game' => ['S' => 'game'],
+            ],
+        ]);
+
+        foreach ($result['Items'] as $playerRecord) {
+            if (isset($playerRecord['last_guess']['N']) && $playerRecord['last_guess']['N'] == $targetValue) {
+                return true;
+            }
+        }
+
+        return false;
     } catch (AwsException $ex) {
         throw new Exception($ex->getMessage());
     }
