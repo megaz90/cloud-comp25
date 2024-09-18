@@ -22,11 +22,13 @@ $games = listGames($client, TABLE_NAME);
 </head>
 
 <body>
-   <div class="container-fluid">
+   <div class="container">
       <div class="row">
-         <nav class="navbar navbar-dark bg-dark">
-            <span class="navbar-brand mb-0 h1">Number Guesser</span>
-         </nav>
+         <div class="col-md-12">
+            <nav class="navbar navbar-dark bg-dark">
+               <span class="navbar-brand mb-0 h1">Number Guesser Game</span>
+            </nav>
+         </div>
       </div>
       <div class="mt-4">
          <h1 class="text-center">Guess a number and win.</h1>
@@ -36,7 +38,7 @@ $games = listGames($client, TABLE_NAME);
          <div class="card-body">
             <?php if (count($games) > 0): ?>
                <ul class="list-group">
-                  <?php foreach ($games as $game): ?>
+                  <?php foreach ($games['game'] as $game): ?>
                      <li class="list-group-item">
                         <a href='game.php?game_id=<?= $game['game_id']['S'] ?>'>
                            <?= $game['name']['S'] ?>

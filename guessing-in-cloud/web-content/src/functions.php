@@ -34,7 +34,16 @@ function listGames($dynamoDb, $tableName)
         ]);
 
         if (count($result['Items']) > 0) {
-            return $result['Items'];
+            // Loop through the results to find the game and player data
+            $data = [];
+            foreach ($result['Items'] as $item) {
+                if ($item['player_id']['S'] === 'game') {
+                    $data['game'] = $item; // This is the game metadata
+                } else {
+                    $data['player'] = $item; // This is the player data
+                }
+            }
+            return $data;
         } else {
             return [];
         }
