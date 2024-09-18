@@ -67,7 +67,7 @@ $games = listGames($client, TABLE_NAME);
                </div>
                <div class="form-group">
                   <label for="password">Password</label>
-                  <input type="password" class="form-control" id="password" name="password">
+                  <input type="password" class="form-control" id="password" name="password" autocomplete="off">
                   <?php if (isset($_SESSION['error_password'])): ?>
                      <span class="text-danger"><?= $_SESSION['error_password'] ?></span>
                      <?php unset($_SESSION['error_password']); ?>
