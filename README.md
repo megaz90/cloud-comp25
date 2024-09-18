@@ -18,6 +18,12 @@ It covers the following components:
 
 **IAM**: Python script and PHP application is coded in a way where <b>IAM</b> has permission to create EC2 instance as well as has permission to create DynamoDB tables since we can't access AWS credentials with free tier.
 
+## Auto Scalability
+
+- **Minimum / Default Number of Instances:** The ASG is configured to start with a minimum of 1 EC2 instance to handle the initial traffic load.
+- **Maximum Number of Instances:** As traffic increases, the ASG can scale up to 3 EC2 instances. This ensures that the application can handle higher loads.
+- **Scaling Policy:** The ASG uses a scaling policy that monitors the number of requests per instance. If the requests exceed 5 requests per instance, the ASG will automatically add more instances, up to the maximum limit.
+
 ## Usage
 
 1. **Initialize AWS Clients**: The script initializes clients for EC2, Elastic Load Balancing (ELB), Auto Scaling, and DynamoDB.
@@ -46,7 +52,48 @@ python stop.py
 
 - This script is based on the script used in labs. It is modified version of boto3 script used in the labs.
 
-# Number Guesser Game
+# Number Guessing Game
+
+## PHP Application Structure
+
+The Guessing Game web application is built with **PHP** and interacts with **AWS DynamoDB** to manage game data. The application is structured as follows:
+
+### Directory Structure
+
+```
+guessing-in-cloud/
+  ├── web-content/
+    ├── src/
+    │   ├── index.php
+    │   ├── game.php
+    │   ├── config.php
+    │   ├── functions.php
+    │   ├── process_game.php
+    │   ├── process_player.php
+  ├── composer.json
+  ├── .htaccess
+```
+
+### File Descriptions
+
+- **index.php**: The entry point of the application, presenting the user interface for the guessing game.
+- **game.php**: Contains the logic for managing the game flow and interactions.
+- **config.php**: Holds configuration settings, including DynamoDB client initialization and table information.
+- **functions.php**: Contains helper functions for interacting with DynamoDB, game logic, and data processing.
+- **process_game.php**: Handles creation of game and direct request to respective functions.
+- **process_player.php**: Handles creation of player session of games.
+- **composer.json**: Contains all application dependencies.
+
+### DynamoDB Integration
+
+The Guessing Game application uses **AWS DynamoDB** to store game and player data. The interactions with DynamoDB are handled via the **AWS SDK for PHP**, which is installed using **Composer**.
+
+- **Game Data Storage**: Each game session is stored in the `cloud_guessing_game` DynamoDB table.
+- **Data Access**: The PHP scripts use helper functions defined in `functions.php` to interact with the DynamoDB table. These functions include creating, reading, and updating game and player records.
+
+### .htaccess File
+
+An `.htaccess` file is configured to handle URL rewriting and manage PHP routing. Additionally, it allows the Guessing Game application to set the `index.php` file as the default page and control the behavior of the application.
 
 ## Welcome to Number Guesser Game!
 
@@ -71,12 +118,13 @@ The rules of the game are simple: Players have to simultaneously guess a number.
 4. **Winning the Game:**
    - The first player to guess the correct number wins.
 
-# Now that the rules are clear: Let the games begin and may the fastest player win - or the best fortune teller.
+## Now that the rules are clear: Let the games begin and may the fastest player win - or the best fortune teller.
 
 ## Acknowledgments
 
-This project was created by group CloudComp25 with the following members:
+This project was created by group CloudComp25 group with the following members:
 
 - team member-1
 - team member-2
 - team member-3
+- team member-4

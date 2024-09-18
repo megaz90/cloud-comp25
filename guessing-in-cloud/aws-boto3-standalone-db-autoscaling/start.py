@@ -129,7 +129,6 @@ except ClientError as e:
     print(e)
 
 print("Deleting old DynamoDB table...")
-print("------------------------------------")
 
 # Function to delete a DynamoDB table if it exists
 def delete_dynamodb_table(table_name):
@@ -142,7 +141,7 @@ def delete_dynamodb_table(table_name):
         print(f"Error deleting DynamoDB Table: {e}")
 
 delete_dynamodb_table('cloud_guessing_game')
-
+print("------------------------------------")
 
 ################################################################################################
 #
@@ -211,40 +210,7 @@ try:
     print('Ingress Successfully Set %s' % data)
 except ClientError as e:
     print(e)
-
-# print("Running new DB instance...")
-# print("------------------------------------")
-
-# userDataDB = ('#!/bin/bash\n'
-#               'yum install -y joe htop git\n'
-#               )
-
-# response = ec2Client.run_instances(
-#     ImageId=imageId,
-#     InstanceType=instanceType,
-#     Placement={'AvailabilityZone': availabilityZone1, },
-#     KeyName=keyName,
-#     MinCount=1,
-#     MaxCount=1,
-#     UserData=userDataDB,
-#     SecurityGroupIds=[security_group_id,],
-#     TagSpecifications=[
-#         {
-#             'ResourceType': 'instance',
-#             'Tags': [
-#                 {'Key': 'Name', 'Value': 'guessing-game-asg-db1'},
-#                 {'Key': 'guessing-game-asg', 'Value': 'db'}
-#             ],
-#         }
-#     ],
-# )
-
-# instanceIdDB = response['Instances'][0]['InstanceId']
-# privateIpDB = response['Instances'][0]['PrivateIpAddress']
-# instance = ec2Resource.Instance(instanceIdDB)
-# instance.wait_until_running()
-
-# print(instanceIdDB)
+    
 
 print("Creating web server instance...")
 print("------------------------------------")
@@ -293,6 +259,7 @@ userDataWebServer = ('#!/bin/bash\n'
                      'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/composer.json\n'
                      'wget https://raw.githubusercontent.com/megaz90/cloud-comp25/main/guessing-in-cloud/web-content/.htaccess\n'
                      '\n'
+                     '# Updating httpd/apache configurations to handle php file and allow to use .htaccess file\n'
                      'sudo sed -i "s|DirectoryIndex index.html|DirectoryIndex index.php index.html|" /etc/httpd/conf/httpd.conf\n'
                      'sudo sed -i \'/<Directory "\\/var\\/www\\/html">/,+21 s/AllowOverride None/AllowOverride All/\' /etc/httpd/conf/httpd.conf\n'
                      'sudo chmod 644 /var/www/html/.htaccess\n'
@@ -398,10 +365,6 @@ response = asClient.create_auto_scaling_group(
         {'Key': 'guessing-game', 'Value': 'webserver', 'PropagateAtLaunch': True}
     ],
 )
-
-print(loadbalancer_arn)
-print(targetgroup_arn)
-print('app/guessing-game-asg-loadbalancer/'+str(loadbalancer_arn).split('/')[3]+'/targetgroup/guessing-game-asg-targetgroup/'+str(targetgroup_arn).split('/')[2])
 
 response = asClient.put_scaling_policy(
     AutoScalingGroupName='guessing-game-asg-autoscalinggroup',

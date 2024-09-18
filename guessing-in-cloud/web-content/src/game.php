@@ -80,6 +80,7 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
                <?php if ($gameWon): ?>
                   <div class="alert alert-success text-center">
                      <strong>Game Over!</strong> The correct number has been guessed!
+                     <h3>Correct Number: <?= $game['target_value']['N'] ?></h3>
                   </div>
                <?php else: ?>
                   <div class="row justify-content-center">
@@ -128,6 +129,7 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
       <?php else: ?>
          <div class="alert alert-success text-center">
             <strong>Game Over!</strong> The correct number has been guessed!
+            <h3>Correct Number: <?= $game['target_value']['N'] ?></h3>
          </div>
       <?php endif; ?>
 
