@@ -5,6 +5,10 @@ include './functions.php';
 // Get DynamoDB Client
 $client = createSDK();
 
+if (!isset($_SESSION['player_record'])) {
+   $_SESSION['player_record'] = [];
+}
+
 // Get game ID from the URL
 $gameId = $_GET['game_id'] ?? null;
 
@@ -64,47 +68,48 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
             </nav>
          </div>
       </div>
-
-      <?php if (isset($_SESSION['player_name']) && isset($_SESSION['player_id'])): ?>
-         <div class="mt-4">
-            <h1 class="text-center">Guess a number between 1 and <?= $game['max_value']['N'] ?>.</h1>
-            <p class="text-center">Game: <strong><?= $game['name']['S'] ?></strong></p>
-         </div>
-
-         <?php if ($gameWon): ?>
-            <div class="alert alert-success text-center">
-               <strong>Game Over!</strong> The correct number has been guessed!
+      <?php if (isset($_SESSION['player_record']) && in_array($_SESSION['player_id'] . $gameId, $_SESSION['player_record'])): ?>
+         <?php if (isset($_SESSION['player_name']) && isset($_SESSION['player_id'])): ?>
+            <div class="mt-4">
+               <h1 class="text-center">Guess a number between 1 and <?= $game['max_value']['N'] ?>.</h1>
+               <p class="text-center">Game: <strong><?= $game['name']['S'] ?></strong></p>
             </div>
-         <?php else: ?>
-            <div class="row justify-content-center">
-               <div class="col-md-6">
-                  <div class="card">
-                     <div class="card-body">
-                        <!-- Display Player Feedback -->
-                        <?php if ($message): ?>
-                           <div class="alert alert-info text-center" role="alert">
-                              <?= $message ?>
-                           </div>
-                        <?php endif; ?>
 
-                        <!-- Guessing Form (only if player is part of the game) -->
-                        <?php if ($playerId): ?>
-                           <form method="POST" action="">
-                              <div class="form-group">
-                                 <label for="guess">Enter your guess:</label>
-                                 <input type="number" name="guess" id="guess" class="form-control" placeholder="Your guess" required min="1" max="<?= $game['max_value']['N'] ?>">
+            <?php if ($gameWon): ?>
+               <div class="alert alert-success text-center">
+                  <strong>Game Over!</strong> The correct number has been guessed!
+               </div>
+            <?php else: ?>
+               <div class="row justify-content-center">
+                  <div class="col-md-6">
+                     <div class="card">
+                        <div class="card-body">
+                           <!-- Display Player Feedback -->
+                           <?php if ($message): ?>
+                              <div class="alert alert-info text-center" role="alert">
+                                 <?= $message ?>
                               </div>
-                              <button type="submit" class="btn btn-primary btn-block">Submit Guess</button>
-                           </form>
-                        <?php else: ?>
-                           <div class="alert alert-warning text-center">
-                              You need to join the game before guessing.
-                           </div>
-                        <?php endif; ?>
+                           <?php endif; ?>
+
+                           <!-- Guessing Form (only if player is part of the game) -->
+                           <?php if ($playerId): ?>
+                              <form method="POST" action="">
+                                 <div class="form-group">
+                                    <label for="guess">Enter your guess:</label>
+                                    <input type="number" name="guess" id="guess" class="form-control" placeholder="Your guess" required min="1" max="<?= $game['max_value']['N'] ?>">
+                                 </div>
+                                 <button type="submit" class="btn btn-primary btn-block">Submit Guess</button>
+                              </form>
+                           <?php else: ?>
+                              <div class="alert alert-warning text-center">
+                                 You need to join the game before guessing.
+                              </div>
+                           <?php endif; ?>
+                        </div>
                      </div>
                   </div>
                </div>
-            </div>
+            <?php endif; ?>
          <?php endif; ?>
       <?php else: ?>
          <div class="mt-4">
