@@ -10,19 +10,12 @@ from botocore.exceptions import ClientError
 #
 ################################################################################################
 
-# changed to use us-east, to be able to use AWS Educate Classroom
 region = 'us-east-1'
 availabilityZone1 = 'us-east-1a'
 availabilityZone2 = 'us-east-1b'
 availabilityZone3 = 'us-east-1c'
 
-
-# AMI ID of Amazon Linux 2 image 64-bit x86 in us-east-1 (can be retrieved, e.g., at
-# https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchInstanceWizard:)
-# TODO update to recent version of Amazon Linux 2 AMI?
 imageId = 'ami-0d5eff06f840b45e9'
-# for eu-central-1, AMI ID of Amazon Linux 2 would be:
-# imageId = 'ami-0cc293023f983ed53'
 
 instanceType = 't2.micro'
 keyName = 'vockey'
@@ -53,48 +46,13 @@ subnet_id1 = ec2Client.describe_subnets(Filters=[{'Name': 'availability-zone', '
 subnet_id2 = ec2Client.describe_subnets(Filters=[{'Name': 'availability-zone', 'Values': [availabilityZone2]}])['Subnets'][0]['SubnetId']
 subnet_id3 = ec2Client.describe_subnets(Filters=[{'Name': 'availability-zone', 'Values': [availabilityZone3]}])['Subnets'][0]['SubnetId']
 
-# Function to create a DynamoDB table if it doesn't exist
-def create_dynamodb_table():
-    try:
-        table = dynamodb.create_table(
-            TableName='cloud_guessing_game',
-            KeySchema=[
-                {'AttributeName': 'game_id', 'KeyType': 'HASH'},
-                {'AttributeName': 'player_id', 'KeyType': 'RANGE'}
-            ],
-            AttributeDefinitions=[
-                {'AttributeName': 'game_id', 'AttributeType': 'S'},
-                {'AttributeName': 'player_id', 'AttributeType': 'S'}
-            ],
-            ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
-        )
-        table.wait_until_exists()
-        print(f"DynamoDB Table '{table.table_name}' created successfully.")
-    except ClientError as e:
-        if 'ResourceInUseException' in str(e):
-            print("DynamoDB Table already exists. Skipping creation.")
-        else:
-            raise e
-
-# Function to insert data into DynamoDB table
-def insert_instance_data(instance_id, instance_type, private_ip, status):
-    table = dynamodb.Table('cloud_guessing_game')
-    try:
-        table.put_item(
-            Item={
-                'cloud_id': int(instance_id[-5:], 16),  # Generate cloud_id based on instance_id (for uniqueness)
-                'instance_id': instance_id,
-                'instance_type': instance_type,
-                'private_ip': private_ip,
-                'status': status
-            }
-        )
-        print(f"Inserted instance data for {instance_id} into DynamoDB.")
-    except ClientError as e:
-        print(f"Error inserting instance data: {e}")
         
+################################################################################################
+#
+# Deleting old configurations
+#
+################################################################################################
 
-#Deleting old configurations
 print("Deleting old auto scaling group...")
 print("------------------------------------")
 
@@ -170,6 +128,9 @@ try:
 except ClientError as e:
     print(e)
 
+print("Deleting old DynamoDB table...")
+print("------------------------------------")
+
 # Function to delete a DynamoDB table if it exists
 def delete_dynamodb_table(table_name):
     try:
@@ -180,15 +141,41 @@ def delete_dynamodb_table(table_name):
     except ClientError as e:
         print(f"Error deleting DynamoDB Table: {e}")
 
-# Deleting old DynamoDB table
-print("Deleting old DynamoDB table...")
 delete_dynamodb_table('cloud_guessing_game')
-print("------------------------------------")
 
+
+################################################################################################
+#
+# Creating New configurations
+#
+################################################################################################
 
 print("Create Dynamo DB tables")
 print("------------------------------------")
+
 # Creating DynamoDB table (if it doesn't exist)
+def create_dynamodb_table():
+    try:
+        table = dynamodb.create_table(
+            TableName='cloud_guessing_game',
+            KeySchema=[
+                {'AttributeName': 'game_id', 'KeyType': 'HASH'},
+                {'AttributeName': 'player_id', 'KeyType': 'RANGE'}
+            ],
+            AttributeDefinitions=[
+                {'AttributeName': 'game_id', 'AttributeType': 'S'},
+                {'AttributeName': 'player_id', 'AttributeType': 'S'}
+            ],
+            ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+        )
+        table.wait_until_exists()
+        print(f"DynamoDB Table '{table.table_name}' created successfully.")
+    except ClientError as e:
+        if 'ResourceInUseException' in str(e):
+            print("DynamoDB Table already exists. Skipping creation.")
+        else:
+            raise e
+        
 create_dynamodb_table()
 
 print("Create security group...")
@@ -225,39 +212,42 @@ try:
 except ClientError as e:
     print(e)
 
-print("Running new DB instance...")
+# print("Running new DB instance...")
+# print("------------------------------------")
+
+# userDataDB = ('#!/bin/bash\n'
+#               'yum install -y joe htop git\n'
+#               )
+
+# response = ec2Client.run_instances(
+#     ImageId=imageId,
+#     InstanceType=instanceType,
+#     Placement={'AvailabilityZone': availabilityZone1, },
+#     KeyName=keyName,
+#     MinCount=1,
+#     MaxCount=1,
+#     UserData=userDataDB,
+#     SecurityGroupIds=[security_group_id,],
+#     TagSpecifications=[
+#         {
+#             'ResourceType': 'instance',
+#             'Tags': [
+#                 {'Key': 'Name', 'Value': 'guessing-game-asg-db1'},
+#                 {'Key': 'guessing-game-asg', 'Value': 'db'}
+#             ],
+#         }
+#     ],
+# )
+
+# instanceIdDB = response['Instances'][0]['InstanceId']
+# privateIpDB = response['Instances'][0]['PrivateIpAddress']
+# instance = ec2Resource.Instance(instanceIdDB)
+# instance.wait_until_running()
+
+# print(instanceIdDB)
+
+print("Creating web server instance...")
 print("------------------------------------")
-
-userDataDB = ('#!/bin/bash\n'
-              'yum install -y joe htop git\n'
-              )
-
-response = ec2Client.run_instances(
-    ImageId=imageId,
-    InstanceType=instanceType,
-    Placement={'AvailabilityZone': availabilityZone1, },
-    KeyName=keyName,
-    MinCount=1,
-    MaxCount=1,
-    UserData=userDataDB,
-    SecurityGroupIds=[security_group_id,],
-    TagSpecifications=[
-        {
-            'ResourceType': 'instance',
-            'Tags': [
-                {'Key': 'Name', 'Value': 'guessing-game-asg-db1'},
-                {'Key': 'guessing-game-asg', 'Value': 'db'}
-            ],
-        }
-    ],
-)
-
-instanceIdDB = response['Instances'][0]['InstanceId']
-privateIpDB = response['Instances'][0]['PrivateIpAddress']
-instance = ec2Resource.Instance(instanceIdDB)
-instance.wait_until_running()
-
-print(instanceIdDB)
 
 userDataWebServer = ('#!/bin/bash\n'
                      '# essential tools\n'
@@ -321,7 +311,6 @@ print("Creating launch configuration...")
 print("------------------------------------")
 
 response = asClient.create_launch_configuration(
-    #IamInstanceProfile='my-iam-role',
     IamInstanceProfile=iamRole,
     ImageId=imageId,
     InstanceType=instanceType,
@@ -428,19 +417,4 @@ response = asClient.put_scaling_policy(
     }
 )
 
-# Example of querying DynamoDB to check instance data
-def query_instance_data(instance_id):
-    table = dynamodb.Table('cloud_guessing_game')
-    try:
-        response = table.get_item(Key={'cloud_id': int(instance_id[-5:], 16)})
-        if 'Item' in response:
-            print(f"Queried instance data: {response['Item']}")
-        else:
-            print(f"No data found for instance {instance_id}")
-    except ClientError as e:
-        print(f"Error querying instance data: {e}")
-
-# Example of querying the instance data
-query_instance_data(instanceIdDB)
-
-print('Load Balancer should be reachable at: http://' + loadbalancer_dns)
+print('Run Game from this link: http://' + loadbalancer_dns)
