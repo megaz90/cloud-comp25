@@ -78,6 +78,9 @@ function joinGame($dynamoDb, $tableName, $gameId, $playerName)
 function makeGuess($dynamoDb, $tableName, $gameId, $playerId, $guess)
 {
     try {
+        if (checkIfGameIsWon($dynamoDb, $tableName, $gameId)) {
+            return "Nice Try! Someone else already won!";
+        }
         $gameResult = $dynamoDb->getItem([
             'TableName' => $tableName,
             'Key' => [
@@ -172,19 +175,21 @@ function checkIfGameIsWon($dynamoDb, $tableName, $gameId)
 
         $result = $dynamoDb->query([
             'TableName' => $tableName,
-            'KeyConditionExpression' => 'game_id = :gameId AND player_id <> :game', // Exclude the 'game' record
+            'KeyConditionExpression' => 'game_id = :gameId',
             'ExpressionAttributeValues' => [
                 ':gameId' => ['S' => $gameId],
-                ':game' => ['S' => 'game'],
             ],
         ]);
 
         foreach ($result['Items'] as $playerRecord) {
+            if ($playerRecord['player_id']['S'] === 'game') {
+                continue;
+            }
+            // Check if the player's last guess matches the target value
             if (isset($playerRecord['last_guess']['N']) && $playerRecord['last_guess']['N'] == $targetValue) {
                 return true;
             }
         }
-
         return false;
     } catch (AwsException $ex) {
         throw new Exception($ex->getMessage());

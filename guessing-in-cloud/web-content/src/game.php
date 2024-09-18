@@ -136,7 +136,7 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
             <?php if (count($players) > 0): ?>
                <?php foreach ($players as $player): ?>
                   <li class="list-group-item">
-                     <?= $player['player_name']['S'] ?> (Attempts: <?= $player['attempts']['N'] ?>, Last Guess: <?= $player['last_guess']['N'] ?>)
+                     <?= $player['player_name']['S'] ?> (<?= $player['player_id']['S'] ?>) | (Attempts: <?= $player['attempts']['N'] ?>, Last Guess: <?= $player['last_guess']['N'] ?>)
                   </li>
                <?php endforeach; ?>
             <?php else: ?>
@@ -149,6 +149,12 @@ $playerId = isset($_SESSION['player_id']) ? $_SESSION['player_id'] : null;
    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+   <script>
+      // Focus on the input field when the page loads
+      window.onload = function() {
+         document.getElementById('guess').focus();
+      };
+   </script>
 </body>
 
 </html>
