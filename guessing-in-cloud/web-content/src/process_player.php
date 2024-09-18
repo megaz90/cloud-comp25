@@ -13,12 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['player_name'], $_GET[
         $playerId = $_POST['player_id'];
         // Check if player is already part of the game
         $_SESSION['player_record'][] = $newPlayerId . $gameId;
-        try {
-            $playerStatus = $playerId ? getPlayerStatus($client, TABLE_NAME, $gameId, $playerId) : null;
-            $_SESSION['player_id'] = $playerId;
-        } catch (Exception $ex) {
-            header("Location:./game.php?game_id=" . $_GET['game_id']);
-        }
     }
 
     if ($playerName) {
