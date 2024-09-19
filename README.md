@@ -122,9 +122,4 @@ The rules of the game are simple: Players have to simultaneously guess a number.
 
 ## Acknowledgments
 
-This project was created by group CloudComp25 group with the following members:
-
-- team member-1
-- team member-2
-- team member-3
-- team member-4
+This project was created by CloudComp25 group.
